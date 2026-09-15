@@ -18,14 +18,21 @@ def home():
 @app.route("/chat", methods=["POST"])
 def chat():
     try:
-        data = request.get_json(silent=True)
-        if not data:
+        # ਹਰ ਤਰੀਕੇ ਨਾਲ ਮੈਸੇਜ ਚੈੱਕ ਕਰ ਲਵੋ (ਭਾਵੇਂ JSON ਹੋਵੇ ਜਾਂ ਫਾਰਮ)
+        user_message = None
+        if request.is_json:
+            data = request.get_json(silent=True)
+            if data:
+                user_message = data.get("message")
+        
+        if not user_message:
             user_message = request.form.get("message")
-        else:
-            user_message = data.get("message")
+            
+        if not user_message and request.data:
+            user_message = request.data.decode("utf-8")
 
         if not user_message:
-            return jsonify({"response": "Please enter a message."})
+            return jsonify({"response": f"Debug - Got nothing. Form: {request.form}, JSON: {request.is_json}"})
 
         if not model:
             return jsonify({"response": "Error: API Key is not configured."})
