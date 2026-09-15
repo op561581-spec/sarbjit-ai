@@ -1,4 +1,3 @@
-
 import os
 from flask import Flask, render_template, request, jsonify
 import google.generativeai as genai
@@ -19,20 +18,19 @@ def home():
 @app.route("/chat", methods=["POST"])
 def chat():
     try:
-        user_message = request.form.get("message")
-        
-        if not user_message and 'file' not in request.files:
+        data = request.get_json(silent=True)
+        if not data:
+            user_message = request.form.get("message")
+        else:
+            user_message = data.get("message")
+
+        if not user_message:
             return jsonify({"response": "Please enter a message."})
 
         if not model:
             return jsonify({"response": "Error: API Key is not configured."})
 
-        # Generate response from Gemini
-        if user_message:
-            response = model.generate_content(user_message)
-        else:
-            response = model.generate_content("Describe this image.")
-
+        response = model.generate_content(user_message)
         return jsonify({"response": response.text})
 
     except Exception as e:
